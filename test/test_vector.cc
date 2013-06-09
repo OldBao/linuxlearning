@@ -31,21 +31,29 @@ TEST_F(LLVectorTest, TestInteger){
 
 }
 
+int
+str_free(void *data) {
+  char **str = (char **) data;
+  free(*str);
+  return LL_OK;
+}
+
 TEST_F(LLVectorTest, TestChar) {
   ll_vector_t* vector;
   int i;
   int ret;
 
-  vector = ll_vector_create(sizeof(const char *));
+  vector = ll_vector_create(sizeof(char *));
 
   ASSERT_TRUE(vector!=NULL);
 
-  char elem[10][16];
+  char *elem;
   
   for (i = 0; i < 10; i++){
-    memset(elem[i], 0, 16);
-    snprintf(elem[i], 16, "ELEM%d", i);
-    ret = ll_vector_append(vector, elem[i]);
+    elem = (char *)malloc(16);
+    memset(elem, 0, 16);
+    snprintf(elem, 16, "ELEM%d", i);
+    ret = ll_vector_append(vector, &elem);
     ASSERT_EQ(ret, LL_OK);
   }
 
@@ -54,57 +62,125 @@ TEST_F(LLVectorTest, TestChar) {
   char **pelem;
   char buf[16];
   for (i = 0; i < 10; i++){
-    pelem = (char **)ll_vector_get(vector, 0);
+    pelem = (char **)ll_vector_get(vector, i);
     snprintf(buf, 16, "ELEM%d", i);
     ASSERT_TRUE(pelem != NULL);
     ASSERT_TRUE(*pelem != NULL);
     ASSERT_STREQ(*pelem, buf);
   }
+
+  ll_vector_destroy(vector, str_free);
 }
 
-/*
-TEST_F(LLVectorTest, TestString) {
-  ll_vector_t* vector;
-  int i;
-
-  vector = ll_vector_create(sizeof(char) * 16);
-
-  ASSERT_TRUE(vector!=NULL);
-
-  char elem[10][16];
-  
-  for (i = 0; i < 10; i++){
-    memset(elem[i], 0, 16);
-    snprintf(elem[i], 16, "ELEM%d", i);
-    ll_vector_append(vector, elem[i]);
-  }
-
-  ASSERT_TRUE(vector->length, 10);
-
-  char **pelem;
-  char buf[16];
-  for (i = 0; i < 10; i++){
-    pelem = (char **)ll_vector_get(vector, 0);
-    snprintf(buf, 16, "ELEM%d", i);
-    ASSERT_TRUE(pelem != NULL);
-    ASSERT_TRUE(*pelem != NULL);
-    ASSERT_STREQ(*pelem, buf);
-  }  
-}
-*/
 
 TEST_F(LLVectorTest, TestStruct) {
-  struct {
+  struct test{
     int a;
     char b;
-  } elem1, elem2, elem3;
+  } elem[10], *pelem;
 
-  ll_vector_t *vector = ll_vector_create(sizeof(elem1));
+  int i;
+  ll_vector_t *vector = ll_vector_create(sizeof(struct test));
+  int ret;
 
-  elem1.a = 1; elem2.a = 2; elem3.a = 3;
-  elem1.b = 'a'; elem2.b = 'b'; elem3.b = 'c';
-  
-  ll_vector_append(vector, &elem1);
-  ll_vector_append(vector, &elem2);
-  ll_vector_append(vector, &elem3);
+  for (i = 0; i < 10; i++){
+    elem[i].a = i;
+    elem[i].b = 'a' + i;
+    
+    ret = ll_vector_append(vector, &elem[i]);
+    ASSERT_EQ(ret, LL_OK);
+  }
+
+  for (i = 0; i < 10; i++) {
+    pelem = (struct test *)ll_vector_get(vector, i);
+    ASSERT_TRUE(pelem != NULL);
+    ASSERT_EQ(pelem->a, i);
+    ASSERT_EQ(pelem->b, i + 'a');
+  }
 }
+
+TEST_F(LLVectorTest, TestNegativeIndex) {
+  ll_vector_t *vector;
+
+  vector = ll_vector_create(sizeof(int));
+
+  ASSERT_TRUE(vector != NULL);
+
+  int i;
+  int ret;
+  int *pelem;
+
+  for (i = 0; i < 10; i++) {
+    ret = ll_vector_append(vector, &i);
+    ASSERT_EQ(ret, LL_OK);
+  }
+  for (i = -10; i < 0; i++) { 
+    pelem = (int *)ll_vector_get(vector, i);
+    ASSERT_TRUE(pelem != NULL);
+    ASSERT_EQ(*pelem, i+10);
+  }
+
+  pelem = (int *)ll_vector_get(vector, -11);
+  ASSERT_TRUE(pelem == NULL);
+
+  pelem = (int *)ll_vector_get(vector, 10);
+  ASSERT_TRUE(pelem == NULL);
+}
+
+TEST_F(LLVectorTest, TestDelete) {
+  int a;
+  ll_vector_t *vector;
+  int ret;
+  int *p;
+
+  vector = ll_vector_create(sizeof(int));
+
+  ASSERT_TRUE(vector != NULL);
+
+  a = 1;
+
+  ret = ll_vector_append(vector, &a);
+  
+  ASSERT_EQ(ret, LL_OK);
+
+  a = 2;
+
+  ret = ll_vector_append(vector, &a);
+
+  ASSERT_EQ(ret ,LL_OK);
+
+  ASSERT_EQ(vector->length, 2);
+
+  ll_vector_delete_at(vector, 0);
+
+  p = (int *)ll_vector_get(vector, 0);
+
+  ASSERT_EQ(*p, 2);
+
+  ASSERT_EQ(vector->length, 1);
+
+  ll_vector_delete_at(vector, 0);
+
+  ASSERT_EQ(vector->length, 0);
+}
+
+
+TEST_F(LLVectorTest, TestIncreasing) {
+  int ret;
+  int i, *p;
+  ll_vector_t *vector = ll_vector_create(sizeof(int));
+
+  for (i = 0; i < 10000; i++) {
+    ret = ll_vector_append(vector, &i);
+    ASSERT_EQ(ret, LL_OK);
+  }
+
+  for (i = 0; i < 10000; i++) {
+    p = (int *)ll_vector_get(vector, i);
+    ASSERT_EQ(*p, i);
+  }
+  ASSERT_EQ(vector->length, 10000);
+  
+  ll_vector_destroy(vector, NULL);
+}
+

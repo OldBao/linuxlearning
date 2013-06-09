@@ -12,13 +12,14 @@ static inline int
 ll_vector_increasing_if(ll_vector_t *vector) {
   assert(vector);
 
-  if (vector->size << 1 > LL_SIZE_MAX) {
-    return LL_FAILURE;
-  }
-
-  vector->size  <<= 1;
 
   if (vector->length >= vector->size) {
+    if ((vector->size << 1) > LL_SIZE_MAX) {
+      return LL_FAILURE;
+    }
+
+    vector->size  <<= 1;
+
     vector->data = realloc(vector->data, vector->size * vector->elem_size);
 
     if (!vector->data) {
@@ -61,7 +62,7 @@ ll_vector_create(int elemsize) {
 
 
 void *
-ll_vector_get(ll_vector_t *vector, ll_vector_size_t pos) {
+ll_vector_get(ll_vector_t *vector, int pos) {
   assert(vector);
 
   ll_vector_size_t real_pos;
@@ -72,7 +73,7 @@ ll_vector_get(ll_vector_t *vector, ll_vector_size_t pos) {
     real_pos = pos;
   }
 
-  if (real_pos >= vector->length) {
+  if (real_pos >= vector->length || real_pos < 0) {
     return NULL;
   }
 
@@ -101,16 +102,18 @@ ll_vector_insert_after(ll_vector_t *vector, void *data, ll_vector_size_t pos) {
   }
 
   //be carefull vector->length is unsigned int
-  if (vector->length > 0){
-    for(i = vector->length; i > pos; i--) {
-      memcpy(ll_vector_addr_in(vector, i), 
-	     ll_vector_addr_in(vector, i - 1), 
-	     vector->elem_size);
-      i--;
-    }
+  for(i = vector->length; i > pos + 1; i--) {
+    memcpy(ll_vector_addr_in(vector, i), 
+	   ll_vector_addr_in(vector, i - 1), 
+	   vector->elem_size);
+    i--;
   }
 
-  memcpy(ll_vector_addr_in(vector, pos), data, vector->elem_size);
+  //zero is a special case
+  if (vector->length == 0)
+    memcpy(ll_vector_addr_in(vector, 0), data, vector->elem_size);
+  else
+    memcpy(ll_vector_addr_in(vector, pos + 1), data, vector->elem_size);    
 
   vector->length++;
 
@@ -129,10 +132,8 @@ ll_vector_insert_before(ll_vector_t *vector, void *data, ll_vector_size_t pos) {
 
 
 int 
-ll_vector_delete_at(ll_vector_t *vector, void *data, ll_vector_size_t pos) {
+ll_vector_delete_at(ll_vector_t *vector, ll_vector_size_t pos) {
   assert(vector);
-  assert(data);
-
 
   ll_vector_size_t i;
 

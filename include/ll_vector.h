@@ -14,11 +14,11 @@
 #include "ll_core.h"
 
 #ifdef LL_VECTOR64
-typedef uint64_t ll_vector_size_t;
-#define LL_SIZE_MAX ULONG_MAX
+typedef int64_t ll_vector_size_t;
+#define LL_SIZE_MAX LONG_MAX
 #else
-typedef uint32_t  ll_vector_size_t;
-#define LL_SIZE_MAX UINT_MAX
+typedef int32_t  ll_vector_size_t;
+#define LL_SIZE_MAX INT_MAX
 #endif
 
 typedef struct ll_vector_s ll_vector_t;
@@ -49,7 +49,7 @@ ll_vector_t* ll_vector_create(int elemSize);
  * 
  * @return       NULL if pos is invalid
  */
-void * ll_vector_get(ll_vector_t *vector,  ll_vector_size_t pos);
+void * ll_vector_get(ll_vector_t *vector, ll_vector_size_t pos);
 
 /** 
  * copy insert, a easy understand but not effcient way
@@ -96,7 +96,7 @@ int ll_vector_insert_before(ll_vector_t *vector, void *data, ll_vector_size_t po
  * @return  LL_OK on success
  *          LL_FAILURE on failure
  */
-int ll_vector_delete_at(ll_vector_t *vector, void *data, ll_vector_size_t pos);
+int ll_vector_delete_at(ll_vector_t *vector, ll_vector_size_t pos);
 
 /** 
  * traverse the vector, if cb is NULL, do nothing at all
