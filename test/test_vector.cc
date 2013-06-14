@@ -1,6 +1,5 @@
 #include "test_vector.h"
 
-
 TEST_F(LLVectorTest, TestInteger){
   ll_vector_t* vector;
   int ret;
@@ -182,5 +181,29 @@ TEST_F(LLVectorTest, TestIncreasing) {
   ASSERT_EQ(vector->length, 10000);
   
   ll_vector_destroy(vector, NULL);
+}
+
+TEST_F(LLVectorTest, TestAsStack) {
+  ll_stack_t *stack;
+  int         elem, *pelem;
+
+  stack = ll_stack_create(sizeof(int));
+
+  ASSERT_TRUE(stack != NULL);
+  for(elem = 0; elem < 10000; elem++) {
+    ll_stack_push(stack, &elem);
+  }
+
+  for(elem = 9999; elem >= 0; elem--) {
+    pelem = (int *)ll_stack_top(stack);
+  
+    ASSERT_TRUE(LL_OK == ll_stack_pop(stack));
+
+    ASSERT_EQ(*pelem, elem);
+  }
+
+  ASSERT_TRUE(ll_stack_top(stack) == NULL);
+
+  ll_stack_destroy(stack, NULL);
 }
 

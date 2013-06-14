@@ -135,14 +135,20 @@ int
 ll_vector_delete_at(ll_vector_t *vector, ll_vector_size_t pos) {
   assert(vector);
 
-  ll_vector_size_t i;
+  ll_vector_size_t i, real_pos;
 
-  if (pos < 0 || pos >= vector->length) {
+  if (pos < 0) {
+    real_pos = vector->length + pos;
+  } else {
+    real_pos = pos;
+  }
+
+  if (real_pos < 0 || real_pos >= vector->length) {
     return LL_FAILURE;
   }
 
   if (vector->length > 0){
-    for(i = pos; i < vector->length; i++) {
+    for(i = real_pos; i < vector->length - 1; i++) {
       memcpy(ll_vector_addr_in(vector, i), 
 	     ll_vector_addr_in(vector, i+1), 
 	     vector->elem_size);

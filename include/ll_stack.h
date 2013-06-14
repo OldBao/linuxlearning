@@ -7,13 +7,17 @@
  * 
  * 
  */
+#ifndef LL_STACK_H_
+#define LL_STACK_H_
 
 #include "ll_vector.h"
 
 typedef ll_vector_t ll_stack_t;
 
-ll_stack_t* ll_stack_create(int elemSize);
+#define ll_stack_create ll_vector_create
+#define ll_stack_push   ll_vector_append
+#define ll_stack_pop(stack)    ll_vector_delete_at(stack, -1)
+#define ll_stack_top(stack)    ll_vector_get(stack, -1)
+#define ll_stack_destroy       ll_vector_destroy
 
-int ll_stack_push
-
-#define ll_stack_pop    ll_vector_ 
+#endif

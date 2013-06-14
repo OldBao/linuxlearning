@@ -13,6 +13,7 @@
 
 #include "ll_test.h"
 #include "ll_vector.h"
+#include "ll_stack.h"
 
 class LLVectorTest : public ::testing::Test {
 protected:
