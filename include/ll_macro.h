@@ -17,10 +17,11 @@
 #define LL_FAILURE -1
 
 //calculate offset of a member in a struct
-#define LL_OFFSET_OF(s, t) (((s) *)0->(t))
+#define LL_OFFSET_OF(s, t) ( (size_t) &(((s *)0)->t ) )
 
 //calculate base address of a pointer
-#define LL_CONTAINER_OF(p, s, t) ((s) *)((char *)(p) - LL_OFFSET_OF((s),(t)))
+#define LL_CONTAINER_OF(p, s, t) \
+  ( (s *) ( (char *)(p) - LL_OFFSET_OF(s, t) ) )
 
 //transfer current to string
 #define __LL_V_LINE(x) #x
