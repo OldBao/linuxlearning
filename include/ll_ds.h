@@ -12,5 +12,7 @@
 #define LL_DS_H_
 
 #include "ll_vector.h"
+#include "ll_list.h"
+#include "ll_stack.h"
 
 #endif

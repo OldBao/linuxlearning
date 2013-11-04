@@ -53,7 +53,7 @@ gx_set_log_file(ll_log_t *log, const char* path, const char* name){
 }
 
 void gx_set_log_level(int level) {
-	if (level > GX_LOG_ERROR || level < GX_LOG_TRACE)
+	if (level > LL_LOG_ERROR || level < LL_LOG_TRACE)
 		return;
 	gx_globals.g_log->log_level = level;
 }

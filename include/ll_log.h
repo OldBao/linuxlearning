@@ -11,6 +11,7 @@
 #ifndef LL_LOG_H_
 #define LL_LOG_H_
 
+#include <stdio.h>
 #include <stdint.h>
 
 #include "ll_core.h"

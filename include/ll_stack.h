@@ -14,6 +14,7 @@
 
 typedef ll_vector_t ll_stack_t;
 
+//这里只实现了基于动态数组的栈，其实简单的栈和队列就是标准数组的一个操作子集
 #define ll_stack_create ll_vector_create
 #define ll_stack_push   ll_vector_append
 #define ll_stack_pop(stack)    ll_vector_delete_at(stack, -1)

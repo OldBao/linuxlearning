@@ -12,7 +12,6 @@
 #define LL_VECTOR_H_
 
 #include "ll_core.h"
-
 #ifdef LL_VECTOR64
 typedef int64_t ll_vector_size_t;
 #define LL_SIZE_MAX LONG_MAX
@@ -22,7 +21,6 @@ typedef int32_t  ll_vector_size_t;
 #endif
 
 typedef struct ll_vector_s ll_vector_t;
-
 
 struct ll_vector_s {
   void *data;      //storage area
