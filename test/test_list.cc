@@ -15,6 +15,7 @@ struct ll_list_container_s {
   ll_list_node_t node;
 };
 
+//测试插入大量的数据
 TEST_F(LLListTest, TestAppendMass) {
   const int NCONTAINER = 10000;
   int   i;

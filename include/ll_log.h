@@ -74,4 +74,5 @@ int  ll_set_log_file(const char* path);
 void ll_set_log_level(u_int level);
 void ll_log(int log_level, const char* fmt,...);
 
+extern ll_log_t g_log;
 #endif /* LL_LOG_H_ */

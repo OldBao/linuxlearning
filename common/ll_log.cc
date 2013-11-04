@@ -16,9 +16,11 @@
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "ll_log.h"
 
+ll_log_t g_log;
 #define LOG_FILE_MODE  O_CREAT | O_APPEND | O_WRONLY;
 
 static const char* maplevel[] = {
@@ -44,7 +46,7 @@ static const char* level2str(int level) {
  *        -1 on fail
  */
 int 
-gx_set_log_file(ll_log_t *log, const char* path, const char* name){
+ll_set_log_file(ll_log_t *log, const char* path, const char* name){
 	int logfd;
 
 	
@@ -52,35 +54,35 @@ gx_set_log_file(ll_log_t *log, const char* path, const char* name){
 	return 0;
 }
 
-void gx_set_log_level(int level) {
-	if (level > LL_LOG_ERROR || level < LL_LOG_TRACE)
+void ll_set_log_level(int level) {
+	if (level > LL_LOG_ERROR || level < LL_LOG_DEBUG)
 		return;
-	gx_globals.g_log->log_level = level;
+	g_log.log_level = level;
 }
 
-void gx_log(int log_level, const char* fmt,...) {
+void ll_log(int log_level, const char* fmt,...) {
 	va_list ap;
-	if (log_level < gx_globals.g_log->log_level) {
+	if (log_level < g_log.log_level) {
 		return;
 	}
 
-	if (gx_globals.g_log->f_fp) {
+	if (g_log.f_fp) {
 		struct timeval timeofday;
 		gettimeofday(&timeofday, NULL);
 		time_t now = timeofday.tv_sec;
 		struct tm newtime;
 		struct tm *date = localtime_r(&now, &newtime);
-		pthread_mutex_lock(&(gx_globals.g_log->mutex));
-		fprintf(gx_globals.g_log->f_fp, "[%s]", level2str(log_level));
-		fprintf(gx_globals.g_log->f_fp, "[%02d-%02d %02d:%02d:%02d]",
+		pthread_mutex_lock(&(g_log.mutex));
+		fprintf(g_log.f_fp, "[%s]", level2str(log_level));
+		fprintf(g_log.f_fp, "[%02d-%02d %02d:%02d:%02d]",
 				date->tm_mon + 1,
 				date->tm_mday,
 				date->tm_hour,
 				date->tm_min,
 				date->tm_sec);
 		va_start(ap, fmt);
-		vfprintf(gx_globals.g_log->f_fp, fmt, ap);
-		pthread_mutex_unlock(&(gx_globals.g_log->mutex));
+		vfprintf(g_log.f_fp, fmt, ap);
+		pthread_mutex_unlock(&(g_log.mutex));
 	}
 	else{
 		perror("fdopen");
