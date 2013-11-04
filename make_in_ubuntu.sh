@@ -2,6 +2,6 @@
 aclocal
 autoconf
 libtoolize --automake --copy --force
-#automake --add-missing
+automake --add-missing
 automake
 ./configure
