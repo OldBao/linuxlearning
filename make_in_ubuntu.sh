@@ -1,5 +1,7 @@
 #!/bin/bash
 aclocal
-automake --add-missing
+autoconf
+libtoolize --automake --copy --force
+#automake --add-missing
 automake
 ./configure
