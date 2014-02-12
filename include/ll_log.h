@@ -13,13 +13,14 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <pthread.h>
 
-#include "ll_core.h"
+#include "ll_macro.h"
 
-const u_int  LL_LOG_DEBUG   = 1;
-const u_int  LL_LOG_INFO    = 2;
-const u_int  LL_LOG_WARNING = 3;
-const u_int  LL_LOG_ERROR   = 4;
+const int  LL_LOG_DEBUG   = 1;
+const int  LL_LOG_INFO    = 2;
+const int  LL_LOG_WARNING = 3;
+const int  LL_LOG_ERROR   = 4;
 
 typedef struct ll_log_s ll_log_t;
 
@@ -71,7 +72,7 @@ struct ll_log_s {
 };
 
 int  ll_set_log_file(const char* path);
-void ll_set_log_level(u_int level);
+void ll_set_log_level(int level);
 void ll_log(int log_level, const char* fmt,...);
 
 extern ll_log_t g_log;

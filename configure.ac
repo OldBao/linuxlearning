@@ -1,11 +1,12 @@
 #                                              -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.68])
+AC_PREREQ([2.59])
 AC_INIT([FULL-PACKAGE-NAME], [VERSION], [BUG-REPORT-ADDRESS])
 AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE
+AC_PROG_LIBTOOL
 
 # Checks for programs.
 AC_PROG_CXX
@@ -36,8 +37,6 @@ AC_CHECK_HEADERS([fcntl.h limits.h stddef.h stdint.h stdlib.h string.h strings.h
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
 AC_C_INLINE
-AC_TYPE_INT32_T
-AC_TYPE_INT64_T
 AC_C_RESTRICT
 AC_TYPE_SIZE_T
 AC_CHECK_TYPES([ptrdiff_t])

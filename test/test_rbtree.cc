@@ -1,6 +1,8 @@
 #include "ll_rbtree.h"
 #include "test_rbtree.h"
 
+#include <iostream>
+using namespace std;
 #define BLACK 1
 #define RED 0
 
@@ -51,8 +53,9 @@ check_node(ll_rbtree_node_t *node, int *level) {
 
 void
 check(ll_rbtree_t *tree){
+  ASSERT_TRUE(node_is_black(tree->root)); //Property 2
+
   if (tree->root != NULL) {
-    ASSERT_TRUE(node_is_black(tree->root)); //Property 2
     int level;
     check_node(tree->root, &level);
   }
@@ -60,8 +63,6 @@ check(ll_rbtree_t *tree){
 
 void my_insert(ll_rbtree_t *tree, my_t *mys) {
   assert(tree);
-  
-  ll_rbtree_node_init(&mys->node);
 
   if (!tree->root) {
     tree->root = &mys->node;
@@ -86,6 +87,12 @@ void my_insert(ll_rbtree_t *tree, my_t *mys) {
   check(tree);
 }
 
+void
+my_delete(ll_rbtree_t *tree, my_t *s) {
+  ll_rbtree_delete_node(tree, &s->node);
+  check(tree);
+}
+
 int
 myvisit(void *data) {
   my_t *me = (my_t *) data;
@@ -93,17 +100,100 @@ myvisit(void *data) {
   printf ("%d ", me->value);
 }
 
-TEST_F(LLRbtreeTest, TestNormal) {
-  const int NODES = 1024;
+TEST_F(LLRbtreeTest, Test1024) {
+  const int NODES = 4;
   int i;
   ll_rbtree_t tree;
+  ll_rbtree_init(&tree);
   my_t nodes[NODES];
 
   srand(time(NULL));
   for (i = 0; i < NODES; i++) {
     nodes[i].value = i;
+    ll_rbtree_node_init(&nodes[i].node);
     my_insert(&tree, &nodes[i]);
   }
+
+}
+
+TEST_F(LLRbtreeTest, TestOne) {
+  const int NODES = 1;
+  int i;
+  ll_rbtree_t tree;
+  ll_rbtree_init(&tree);
+
+  my_t nodes[NODES];
+  srand(time(NULL));
+
+  for (i = 0; i < NODES; i++) {
+    ll_rbtree_node_init(&nodes[i].node);
+    nodes[i].value = i;
+    my_insert(&tree, &nodes[i]);
+  }
+}
+
+TEST_F(LLRbtreeTest, TestRotateRoot) {
+  ll_rbtree_t tree;
+  ll_rbtree_init(&tree);
+
+  my_t node2, node3, node4, node5, node6;
+  ll_rbtree_node_init(&node2.node);
+  node2.value = 2;
+  ll_rbtree_node_init(&node3.node);
+  node3.value = 3;
+  ll_rbtree_node_init(&node4.node);
+  node4.value = 4;
+  ll_rbtree_node_init(&node5.node);
+  node5.value = 5;
+  ll_rbtree_node_init(&node6.node);
+  node6.value = 6;
+
+  my_insert(&tree, &node5);
+  my_insert(&tree, &node2);
+  my_insert(&tree, &node6);
+  my_insert(&tree, &node3);
+  my_insert(&tree, &node4);
+}
+
+TEST_F(LLRbtreeTest, TestDeleteONE) {
+  const int NODES = 1;
+  ll_rbtree_t tree;
+  ll_rbtree_init(&tree);
   
-  //  ll_rbtree_traverse_firstorder(&tree, myvisit);
+  my_t *nodes = new my_t[NODES];
+  srand(time(NULL));
+  int i;
+
+  for(i = 0; i < NODES; i++) {
+    ll_rbtree_node_init(&nodes[i].node);
+    nodes[i].value = i;
+    my_insert(&tree, &nodes[i]);
+  }
+
+  for (i = 0; i < NODES; i++) {
+    my_delete(&tree, &nodes[i]); 
+  }
+
+}
+
+
+TEST_F(LLRbtreeTest, TestDelete1024) {
+  const int NODES = 1024;
+  ll_rbtree_t tree;
+  ll_rbtree_init(&tree);
+  
+  my_t *nodes = new my_t[NODES];
+  srand(time(NULL));
+  int i;
+
+  for(i = 0; i < NODES; i++) {
+    ll_rbtree_node_init(&nodes[i].node);
+    nodes[i].value = i;
+    my_insert(&tree, &nodes[i]);
+  }
+
+  for (i = 0; i < NODES; i++) {
+    my_delete(&tree, &nodes[i]); 
+  }
+
 }
