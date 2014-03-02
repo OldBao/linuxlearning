@@ -1,10 +1,9 @@
 #include <assert.h>
-
+#include <stdio.h>
 #include "ll_rbtree.h"
 
 static const int BLACK = 1;
 static const int RED = 0;
-
 
 #define node_set_red         ll_rbtree_node_set_red
 #define node_set_black(node) (node)->color = BLACK
@@ -17,19 +16,26 @@ parent(ll_rbtree_node_t *node) {
 }
 
 static inline ll_rbtree_node_t *
-grandpa(ll_rbtree_node_t *node) {
-  if (!node->parent)
-    return NULL;
+grandpa(ll_rbtree_node_t *node, ll_rbtree_node_t* parent) {
+  assert(node->parent == parent);
+  if (!node) {
+    if (!parent)
+      return NULL;
+    else 
+      return parent->parent;
+  }
   return node->parent->parent;
 }
 
 static inline ll_rbtree_node_t *
-sibling(ll_rbtree_node_t *node) {
-  ll_rbtree_node_t *p, *s;
+sibling(ll_rbtree_node_t *node, ll_rbtree_node_t *p) {
+  assert(node->parent == p);
 
-  p = parent(node);
-  assert(p);
- 
+  ll_rbtree_node_t *s;
+  if (!node) {
+    return p->left? p->left : p->right;
+  }
+
   if (node == p->left) {
     return p->right;
   } else if (node == p->right){
@@ -43,7 +49,7 @@ sibling(ll_rbtree_node_t *node) {
 static inline ll_rbtree_node_t *
 uncle(ll_rbtree_node_t *node) {
   ll_rbtree_node_t *p = node->parent;
-  ll_rbtree_node_t *g = grandpa(node);
+  ll_rbtree_node_t *g = grandpa(node, p);
   
   if (!p || !g) {
     return NULL;
@@ -63,11 +69,13 @@ left_rotate(ll_rbtree_t *tree, ll_rbtree_node_t *node) {
 
   ll_rbtree_node_t *p = parent(node), *rchild = node->right;
  
-  node->right    = rchild->left; 
-  rchild->left   = node;
-  rchild->parent = node->parent;
-  node->parent   = rchild; 
-  rchild->left->parent = node;
+  node->right         = rchild->left; 
+  if (node->right)
+    node->right->parent = node;
+  rchild->left        = node;
+  rchild->parent      = node->parent;
+  node->parent        = rchild; 
+
   
   if (p) {
     if (p->left == node) {
@@ -88,14 +96,15 @@ right_rotate(ll_rbtree_t *tree, ll_rbtree_node_t *node) {
   assert(node);
   assert(node->left);
 
-  ll_rbtree_node_t *p = parent(node), *lchild = p->left;
+  ll_rbtree_node_t *p = parent(node), *lchild = node->left;
 
-  node->left     = lchild->right;  
-  lchild->right  = node;
-  lchild->parent = node->parent;
-  node->parent   = lchild;
+  node->left         = lchild->right;  
+  if (node->left)
+    node->left->parent = node;
+  lchild->right      = node;
+  lchild->parent     = node->parent;
+  node->parent       = lchild;
 
-  node->left->parent = node;
   
   if (p) {
     if (p->left == node) {
@@ -129,6 +138,7 @@ ll_rbtree_fixup_insert(ll_rbtree_t *t, ll_rbtree_node_t *n) {
     return;
   }
 
+  int i;
   while (1) {
     p = parent(n);
 
@@ -139,9 +149,10 @@ ll_rbtree_fixup_insert(ll_rbtree_t *t, ll_rbtree_node_t *n) {
     } else if (node_is_black(p)) {
       break;
     } else {
-      g = grandpa(n);
+      g = grandpa(n, p);
       u = uncle(n);
-      assert(g);
+
+      assert(g); //if p is red, his father must be black
 
       if (node_is_red(u)) {
 	/*
@@ -173,21 +184,23 @@ ll_rbtree_fixup_insert(ll_rbtree_t *t, ll_rbtree_node_t *n) {
 	if (n == p->right && p == g->left) {
 	  left_rotate(t, p);
 	  n = p;
+	  continue;
 	}
 
         if (n == p->left &&  p == g->right) {
 	  right_rotate(t, p);
 	  n = p;
+	  continue;
 	}
 
 	/*
 	 * case IV
 	 *       G                    P
-	 *     /   \                /   \
+	 *     /   \                /	\
 	 *    p     U       =>     n     g
 	 *   / \   / \            / \   / \
 	 *  n   3 4   5          1   2 3   U
-         * / \                            / \
+	 * / \                            / \
 	 *1   2                          4   5
 	 */
 
@@ -197,38 +210,26 @@ ll_rbtree_fixup_insert(ll_rbtree_t *t, ll_rbtree_node_t *n) {
 	  right_rotate(t, g);
 	else
 	  left_rotate(t, g);
+	assert(node_is_black(t->root));
       }
-    
     }
   }
 }
 
 void
-ll_rbtree_fixup_delete(ll_rbtree_t *tree, ll_rbtree_node_t *n) {
-  ll_rbtree_node_t *u, *p, *s, *g, *c;
+ll_rbtree_fixup_delete(ll_rbtree_t *tree, ll_rbtree_node_t *n, ll_rbtree_node_t *p) {
+  ll_rbtree_node_t *u, *s, *g, *c;
   assert(tree);
 
   if (!tree->root) {
     //NULL tree
     return;
   }
-  
-  if (node_is_red(n)) {
-    //neeedn't fixup, return
-    node_set_black(n);
-    return;
-  }
 
-  while (1) {
-    //case I : n is root
-    if (!n->parent) {
-      node_set_black(n);
-      break;
-    }
-
-    p = parent(n);
-    s = sibling(n);
-    g = grandpa(n);
+  //case I: node is black and node is not root
+  while (n && (!p || node_is_black(n))) {
+    s = sibling(n, p);
+    g = grandpa(n, p);
     
     /*
      * case II
@@ -240,14 +241,15 @@ ll_rbtree_fixup_delete(ll_rbtree_t *tree, ll_rbtree_node_t *n) {
      */
     if (node_is_red(s)) {
       if (n == p->left) {
-	right_rotate(tree, p);
-      } else if (n == p->right){
 	left_rotate(tree, p);
+      } else if (n == p->right){
+	right_rotate(tree, p);
       } else {
 	assert(0);
       }
       node_set_red(p);
       node_set_black(s);
+      continue;
     }
     
     /*
@@ -256,14 +258,15 @@ ll_rbtree_fixup_delete(ll_rbtree_t *tree, ll_rbtree_node_t *n) {
      *     / \    =>     / \
      *    N   S         N   s   (P level reduce 1, so switch to switch to case I)
      */
-    if (node_is_black(s)
-	&& node_is_black(s->left)
-	&& node_is_black(s->right)
-	&& node_is_black(p)) {
-      node_set_red(s);
-      n = p;
-      continue;
-    }
+    else if ( 
+	     (!s->left || node_is_black(s->left)) 
+	     && (!s->right || node_is_black(s->right))
+	     && node_is_black(p)) 
+      {
+	node_set_red(s);
+	n = p;
+	continue;
+      }
 
     /*
      * case IV
@@ -275,12 +278,14 @@ ll_rbtree_fixup_delete(ll_rbtree_t *tree, ll_rbtree_node_t *n) {
      */
     if (node_is_red(p) 
 	&& node_is_black(s)
-	&& node_is_black(s->left)
-	&& node_is_black(s->right)) {
-      node_set_red(s);
-      node_set_black(p);
-      break;
-    }
+	&& (!s->left  || node_is_black(s->left))
+	&& (!s->right || node_is_black(s->right))
+	) 
+      {
+	node_set_red(s);
+	node_set_black(p);
+	break;
+      }
 
     /*
      * case V
@@ -294,13 +299,13 @@ ll_rbtree_fixup_delete(ll_rbtree_t *tree, ll_rbtree_node_t *n) {
      */
     if (node_is_black(s)){
       if (n == p->left) {
-	if (node_is_red(s->left) && node_is_black(s->right)) {
+	if ((s->left && node_is_red(s->left)) && (!s->right || node_is_black(s->right))) {
 	  right_rotate(tree, s);
 	  node_set_black(s->left);
 	  node_set_red(s);
 	}
       } else {
-	if (node_is_red(s->right) && node_is_black(s->left)) {
+	if ((s->right && node_is_red(s->right)) && (!s->right || node_is_black(s->left))) {
 	  left_rotate(tree, s);
 	  node_set_black(s->right);
 	  node_set_red(s);
@@ -320,14 +325,18 @@ ll_rbtree_fixup_delete(ll_rbtree_t *tree, ll_rbtree_node_t *n) {
     node_set_black(p);
     if (n == p->left) {
       node_set_black(s->right);
-      left_rotate(tree, s);
+      left_rotate(tree, p);
     }  else if (n == p->right){
       node_set_black(s->left);
-      right_rotate(tree, s);
+      right_rotate(tree, p);
     } else {
       assert(0);
     }
     break;
+  }
+
+  if (n) {
+    node_set_black(n);
   }
 }
 
@@ -351,18 +360,16 @@ void
 ll_rbtree_delete_node(ll_rbtree_t* tree, ll_rbtree_node_t *node) {
   assert(tree);
   assert(tree->root);
-  ll_rbtree_node_t zombie;
-  ll_rbtree_node_t *c, *y;
 
-  ll_rbtree_node_init(&zombie);
-  zombie.color = BLACK;
+  ll_rbtree_node_t *c, *y, tmp_node;
 
   if (!node->left || !node->right) {
     y = node;
   } else {
     y = ll_rbtree_successor(node);
   }
-  
+
+  tmp_node = *y;
   c = y->left ? y->left : y->right; //c now point to y's non-null child (NULL if y is leaf)
   
   if (c) {
@@ -370,50 +377,48 @@ ll_rbtree_delete_node(ll_rbtree_t* tree, ll_rbtree_node_t *node) {
   }
   if (!y->parent) tree->root = c;
   else {
-    if (!c) { 
-      c = &zombie;
-      c->parent = y->parent;
-    }
-
     if (y == y->parent->left) y->parent->left = c;
     else y->parent->right = c;
   }
 
   if (y != node) {
-    ll_rbtree_replace_node(node, y);
+    ll_rbtree_replace_node(tree, node, y);
   }
   
-  ll_rbtree_fixup_delete(tree, c);
-
-  if (c == &zombie) {
-    if (y == y->parent->left) y->parent->left = NULL;
-    else y->parent->right = NULL;
+  if (node_is_black(&tmp_node)) {
+    if (node_is_black(c)) {
+      ll_rbtree_fixup_delete(tree, c, node);
+    } else {
+      node_set_black(c);
+    }
   }
 }
 
 
 void
-ll_rbtree_replace_node(ll_rbtree_node_t *dst, ll_rbtree_node_t *src) {
+ll_rbtree_replace_node(ll_rbtree_t *tree, ll_rbtree_node_t *src, ll_rbtree_node_t *dst) {
   assert(dst);
   assert(src);
 
-  *dst = *src;
+  if (src->left) {
+    src->left->parent = dst;
+  }
+  if (src->right) {
+    src->right->parent = dst;
+  }
 
-  if (dst->left) {
-    dst->left->parent = src;
-  }
-  if (dst->right) {
-    dst->right->parent = dst;
-  }
-  if (dst->parent) {
-    if (dst->parent->left == dst) {
-      dst->parent->left = src;
-    } else if (dst->parent->right == dst) {
-      dst->parent->right = src;
+  if (src->parent) {
+    if (src->parent->left == src) {
+      src->parent->left = dst;
+    } else if (src->parent->right == src) {
+      src->parent->right = dst;
     } else {
       assert(0);
     }
+  } else {
+    tree->root = dst;
   }
+  *dst = *src;
   
 }
 

@@ -1,8 +1,8 @@
 #include "ll_rbtree.h"
 #include "test_rbtree.h"
 
-#include <iostream>
-using namespace std;
+#include <stdio.h>
+
 #define BLACK 1
 #define RED 0
 
@@ -33,6 +33,12 @@ check_node(ll_rbtree_node_t *node, int *level) {
      *level = 1;
      return;
   }
+  if (node->left){
+    ASSERT_TRUE(node->left->parent == node);
+  }
+  if (node->right){
+    ASSERT_TRUE(node->right->parent == node);
+  }
 
   if (node_is_red(node)) { //Property 3
     ASSERT_TRUE(node_is_black(node->left));
@@ -41,8 +47,9 @@ check_node(ll_rbtree_node_t *node, int *level) {
 
   } else {
     cur_black = 1;
-
   }
+
+
   int left, right;
   check_node(node->left, &left);
   check_node(node->right, &right);
@@ -101,15 +108,15 @@ myvisit(void *data) {
 }
 
 TEST_F(LLRbtreeTest, Test1024) {
-  const int NODES = 4;
+  const int NODES = 1024;
   int i;
   ll_rbtree_t tree;
   ll_rbtree_init(&tree);
   my_t nodes[NODES];
-
   srand(time(NULL));
+
   for (i = 0; i < NODES; i++) {
-    nodes[i].value = i;
+    nodes[i].value = rand();
     ll_rbtree_node_init(&nodes[i].node);
     my_insert(&tree, &nodes[i]);
   }
@@ -178,17 +185,19 @@ TEST_F(LLRbtreeTest, TestDeleteONE) {
 
 
 TEST_F(LLRbtreeTest, TestDelete1024) {
-  const int NODES = 1024;
+  const int NODES = 4;
   ll_rbtree_t tree;
   ll_rbtree_init(&tree);
   
   my_t *nodes = new my_t[NODES];
   srand(time(NULL));
   int i;
+  int values[] = {2,3,1,4};
 
   for(i = 0; i < NODES; i++) {
     ll_rbtree_node_init(&nodes[i].node);
-    nodes[i].value = i;
+    nodes[i].value = values[i];
+    printf("insert %d\n", nodes[i].value);
     my_insert(&tree, &nodes[i]);
   }
 
