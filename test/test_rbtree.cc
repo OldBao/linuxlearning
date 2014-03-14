@@ -185,19 +185,20 @@ TEST_F(LLRbtreeTest, TestDeleteONE) {
 
 
 TEST_F(LLRbtreeTest, TestDelete1024) {
-  const int NODES = 4;
+  const int NODES = 1024;
   ll_rbtree_t tree;
   ll_rbtree_init(&tree);
-  
-  my_t *nodes = new my_t[NODES];
-  srand(time(NULL));
   int i;
-  int values[] = {2,3,1,4};
+  my_t *nodes = new my_t[NODES];
+  
+  srand(time(NULL));
+
+  int values[] = {1,4,5,2,3};
 
   for(i = 0; i < NODES; i++) {
     ll_rbtree_node_init(&nodes[i].node);
-    nodes[i].value = values[i];
-    printf("insert %d\n", nodes[i].value);
+    //nodes[i].value = values[i];
+    nodes[i].value = rand();
     my_insert(&tree, &nodes[i]);
   }
 
@@ -206,3 +207,4 @@ TEST_F(LLRbtreeTest, TestDelete1024) {
   }
 
 }
+

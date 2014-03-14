@@ -18,8 +18,6 @@ typedef struct ll_rbtree_node_s ll_rbtree_node_t;
 
 struct ll_rbtree_s {
   ll_rbtree_node_t *root;
-
-  //int count;
 };
 
 struct ll_rbtree_node_s {
