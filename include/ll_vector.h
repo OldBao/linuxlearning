@@ -30,6 +30,8 @@ struct ll_vector_s {
   ll_vector_size_t   length;    //current elem count
 };
 
+#define ll_vector_length(v) ((v)->length)
+
 /** 
  * 
  * 

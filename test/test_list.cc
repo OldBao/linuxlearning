@@ -41,6 +41,14 @@ TEST_F(LLListTest, TestAppendMass) {
     pnode = ll_list_next(pnode);
   }
 
+  //test foreach
+  i = 0;
+  ll_list_foreach_ex(&sb.head, pcontainer, ll_list_container_t, node) {
+    ASSERT_EQ(pcontainer->tag, i);
+    i++;
+  }
+
+
   ll_list_node_t *tmp;
 
   pnode = ll_list_head(&sb.head);

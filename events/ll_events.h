@@ -1,37 +1,54 @@
-/**
- * @file   ll_events.h
- * @author zhangguanxing <zgxcassar@gmail.com>
- * @date   Fri Mar 14 20:01:57 2014
- * 
- * @brief  
- * 
- * 
- */
-
 #ifndef LL_EVENT_H_
 #define LL_EVENT_H_
 
-#include "ll_core.h"
+#include "ll_rbtree.h"
+#include "ll_time.h"
+#include "ll_list.h"
 
+typedef struct ll_event_loop_s ll_event_loop_t;
 typedef struct ll_event_s ll_event_t;
-typedef struct ll_event_context_t *ctx;
+typedef struct ll_event_if_s ll_event_if_t;
+typedef struct ll_event_context_s ll_event_context_t;
+typedef int (*ll_event_cb_t)(ll_event_t *event);
+
+#define LL_EVENT_INIT 0x0
+#define LL_EVENT_READ 0x1
+#define LL_EVENT_WRITE 0x2
 
 struct ll_event_loop_s {
-  int epfd;
-  struct epoll_event* events;
-  int nevents;
+  int max_events;
+  ll_rbtree_t timeout_tree;
+  ll_list_t fire_event_list;
 
-  ll_vector_t connections;
-  ll_rbtree_t timer;
+  void *implement_data;
+};
+
+struct ll_event_if_s {
+  int (*init)(ll_event_loop_t *loop);
+  int (*add_event)(ll_event_loop_t *loop, ll_event_t* event);
+  int (*del_event)(ll_event_loop_t *loop, ll_event_t* event);
+  int (*process)(ll_event_loop_t *loop, ll_timeval_t* tm);
+  int (*destroy)(ll_event_loop_t *loop);
 };
 
 struct ll_event_s {
-  int accept : 1;
-  int read   : 1;
+  int fd;
+  uint32_t flags;
+  ll_event_cb_t callback;
+  void *private_data;
 
-  
-  ll_event_t *next;
+  ll_timeval_t timeout;
+
+  ll_rbtree_node_t timeout_node;
+  ll_list_node_t fire_node;
 };
 
-#endif
+int ll_event_init(ll_event_t *event, int flag, ll_event_cb_t callback, void *private_data);
 
+int ll_event_loop_init(ll_event_loop_t *loop);
+int ll_event_loop_add_event(ll_event_loop_t *loop, ll_event_t *event, int flag);
+int ll_event_loop_del_event(ll_event_loop_t *loop, ll_event_t *event);
+int ll_event_loop_loop(ll_event_loop_t *loop);
+int ll_event_loop_destroy(ll_event_loop_t *loop);
+
+#endif
