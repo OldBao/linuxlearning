@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.59])
-AC_INIT([FULL-PACKAGE-NAME], [VERSION], [BUG-REPORT-ADDRESS])
-AC_CONFIG_HEADERS([config.h])
+AC_INIT([linuxlearning], [0.0.1], [zgxcassar@gmail.com])
+#AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE
 AC_PROG_LIBTOOL
@@ -47,8 +47,19 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([dup2 gettimeofday localtime_r memset rmdir strcasecmp strchr strdup strerror])
 
+AX_HAVE_EPOLL(AX_CONFIG_FEATURE_ENABLE(epoll), AX_CONFIG_FEATURE_DISABLE(epoll))
+
+AX_CONFIG_FEATURE_DEFAULT_ENABLED
+AX_CONFIG_FEATURE(epoll, [turn on epoll support], HAVE_EPOLL, [define HAVE_EPOLL])
+
+AC_ARG_ENABLE(colorlog, AC_HELP_STRING([--enable-colorlog=@<:@yes/no@:>@"],["enable colored log"])
+                        [], 
+                        [enable_color_log=no])
+
+AS_IF([test "x$enable_color_log" != xno], [AC_DEFINE([COLOR_LOG])], [])
+
+
 AC_CONFIG_FILES([Makefile
                  common/Makefile
-                 ds/Makefile
                  test/Makefile])
 AC_OUTPUT

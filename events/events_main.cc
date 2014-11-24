@@ -49,6 +49,8 @@ main(){
 
   ll_log_init(&g_logger, NULL, NULL, LL_LOG_LEVEL_TRACE);
 
+  open("hihedaisuhdaksjdhaksjd", O_RDONLY);
+  LL_PERROR("open");
   ll_event_loop_init(&loop, 32);
 
   ll_event_t ev;
