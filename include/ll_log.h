@@ -30,7 +30,7 @@ typedef struct ll_log_s ll_log_t;
 #ifdef COLOR_LOG
 
 #define LL_LOG_WITH_FL(logger, level, FG, fmt, arg...)	do{             \
-    ll_log(logger, level,  FG, __FILE__ , __LL_LINE(__LINE__),         \
+    ll_log(logger, level,  FG, __FILE__ , __LL_LINE(__LINE__), __FUNCTION__ , \
            fmt, ##arg);}                                                \
   while(0)
 
@@ -42,7 +42,7 @@ typedef struct ll_log_s ll_log_t;
 
 #else
 #define LL_LOG_WITH_FL(logger,level, fmt, arg...)	do{      \
-    ll_log(logger, level,  "[" __FILE__ ":" __LL_LINE(__LINE__) "]\t"   \
+    ll_log(logger, level,  "[" __FILE__ ":" __LL_LINE(__LINE__) "]"   \
            fmt                                                          \
            "\n", ##arg);}                                               \
   while(0)
@@ -85,7 +85,7 @@ struct ll_log_s {
 int  ll_log_init(ll_log_t *logger, const char *path, const char *name, int log_level);
 int  ll_set_log_file(ll_log_t* logger, const char* path, const char *name);
 void ll_set_log_level(ll_log_t* logger, int level);
-void ll_log(ll_log_t* logger, int log_level, const char* fgcolor, const char *fn, const char *line, const char* fmt,...);
+void ll_log(ll_log_t* logger, int log_level, const char* fgcolor, const char *fn, const char *line, const char *function, const char* fmt,...);
 
 extern ll_log_t g_logger;
 
